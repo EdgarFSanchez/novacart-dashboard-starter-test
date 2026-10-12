@@ -7,3 +7,17 @@ node_modules/
 build/
 *.log
 .DS_Store
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Environment secrets
+.env
+
+
+frontend/package-lock.json

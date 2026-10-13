@@ -205,7 +205,6 @@ def get_orders(start: str = "2022-01-01", end: str = "2022-12-31"):
     # and the finally block below can safely call conn.close().
     conn = get_connection()
 
-<<<<<<< HEAD
     # CHANGE: added. SQLite uses ? for query parameters and Snowflake uses %s.
     # DATA_BACKEND (imported from connection.py) tells us which one is active.
     ph = "%s" if DATA_BACKEND == "snowflake" else "?"
@@ -263,14 +262,6 @@ def get_orders(start: str = "2022-01-01", end: str = "2022-12-31"):
     finally:
         # Kept from the draft: always close the connection, even after an error.
         conn.close()
-=======
-    
-
-
-
-    # ── YOUR CODE HERE ────────────────────────────────────────────────────────
-    raise HTTPException(status_code=501, detail="Not implemented yet — your turn!")
->>>>>>> 3823257 (Implement customers endpoint)
 
 
 @app.get("/franchise/products", tags=["Franchise"])

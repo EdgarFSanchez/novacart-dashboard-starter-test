@@ -221,10 +221,40 @@ def get_products(start: str = "2022-01-01", end: str = "2022-12-31"):
       - GROUP BY product_id, name, category
       - ORDER BY revenue DESC, LIMIT 10
     """
-    conn = get_connection()
 
+    conn = get_connection()
+    try:
+        results = execute_query(conn, """
+            SELECT
+                p.product_id,
+                p.name,
+                p.category,
+                SUM(o.quantity) AS units_sold,
+                SUM(o.amount)   AS revenue
+            FROM fact_orders  o
+            JOIN dim_product  p ON p.product_id = o.product_id
+            WHERE o.status IN ('delivered', 'shipped')
+            AND o.order_date BETWEEN ? AND ?
+            GROUP BY p.product_id, p.name, p.category
+            ORDER BY revenue DESC
+            LIMIT 10
+        """, (start, end))
+
+        return [
+            {
+                "product_id": row["product_id"],
+                "name":       row["name"],
+                "category":   row["category"],
+                "units_sold": row["units_sold"],
+                "revenue":    round(row["revenue"] or 0, 2),
+            }
+            for row in results
+        ]
+    finally:
+        conn.close()
+    # Handle failure more gracefully here?
     # ── YOUR CODE HERE ────────────────────────────────────────────────────────
-    raise HTTPException(status_code=501, detail="Not implemented yet — your turn!")
+   #raise HTTPException(status_code=501, detail="Not implemented yet — your turn!")
 
 
 @app.get("/franchise/customers", tags=["Franchise"])

@@ -205,6 +205,7 @@ def get_orders(start: str = "2022-01-01", end: str = "2022-12-31"):
     # and the finally block below can safely call conn.close().
     conn = get_connection()
 
+<<<<<<< HEAD
     # CHANGE: added. SQLite uses ? for query parameters and Snowflake uses %s.
     # DATA_BACKEND (imported from connection.py) tells us which one is active.
     ph = "%s" if DATA_BACKEND == "snowflake" else "?"
@@ -262,6 +263,14 @@ def get_orders(start: str = "2022-01-01", end: str = "2022-12-31"):
     finally:
         # Kept from the draft: always close the connection, even after an error.
         conn.close()
+=======
+    
+
+
+
+    # ── YOUR CODE HERE ────────────────────────────────────────────────────────
+    raise HTTPException(status_code=501, detail="Not implemented yet — your turn!")
+>>>>>>> 3823257 (Implement customers endpoint)
 
 
 @app.get("/franchise/products", tags=["Franchise"])
@@ -338,7 +347,41 @@ def get_customers(start: str = "2022-01-01", end: str = "2022-12-31"):
     conn = get_connection()
 
     # ── YOUR CODE HERE ────────────────────────────────────────────────────────
-    raise HTTPException(status_code=501, detail="Not implemented yet — your turn!")
+    #raise HTTPException(status_code=501, detail="Not implemented yet — your turn!")
+    try:
+        results = execute_query(conn, """
+        SELECT
+            c.customer_id as customer_id,
+            c.name AS name,
+            c.addr_city AS city,
+            c.addr_state AS state,
+            COUNT(DISTINCT o.order_id) AS total_orders,
+            SUM(o.amount) AS total_spent
+        
+        FROM fact_orders o
+        JOIN dim_customer c on o.customer_id = c.customer_id
+        WHERE c.is_current = 1
+            AND o.order_date BETWEEN ? AND ?
+            AND o.status IN ('delivered', 'shipped')
+        
+        GROUP BY 
+        c.customer_id,
+        c.name,
+        c.addr_city,
+        c.addr_state
+
+        ORDER BY total_spent DESC, c.customer_id
+        LIMIT 20
+
+        """, (start, end))
+
+        for row in results: 
+            row["total_spent"] = round(row["total_spent"] or 0, 2)
+
+        return results
+
+    finally:
+        conn.close()
 
 
 @app.get("/franchise/cities", tags=["Franchise"])

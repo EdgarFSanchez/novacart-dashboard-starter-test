@@ -29,7 +29,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 
-from connection import get_connection, execute_query
+# CHANGE: added DATA_BACKEND to this import so get_orders can choose the
+# correct query placeholder (? for SQLite, %s for Snowflake).
+from connection import get_connection, execute_query, DATA_BACKEND
 
 load_dotenv()
 
@@ -147,29 +149,32 @@ def get_summary():
     """
     conn = get_connection()
 
-    # ── YOUR CODE HERE ────────────────────────────────────────────────────────
-    #
-    # results = execute_query(conn, """
-    #     SELECT
-    #         COUNT(DISTINCT order_id)    AS total_orders,
-    #         SUM(amount)                 AS total_revenue,
-    #         COUNT(DISTINCT customer_id) AS unique_customers,
-    #         MIN(order_date)             AS start_date,
-    #         MAX(order_date)             AS end_date
-    #     FROM fact_orders
-    #     WHERE status IN ('delivered', 'shipped')
-    # """)
-    #
-    # row = results[0]
-    # return {
-    #     "total_revenue":     round(row["total_revenue"] or 0, 2),
-    #     "total_orders":      row["total_orders"],
-    #     "unique_customers":  row["unique_customers"],
-    #     "date_range": {"start": row["start_date"], "end": row["end_date"]},
-    # }
-    # ─────────────────────────────────────────────────────────────────────────
+    try:
+        results = execute_query(conn, """
+            SELECT
+                COUNT(DISTINCT order_id) AS total_orders,
+                SUM(amount) AS total_revenue,
+                COUNT(DISTINCT customer_id) AS unique_customers,
+                MIN(order_date) AS start_date,
+                MAX(order_date) AS end_date
+            FROM fact_orders
+            WHERE status IN ('delivered', 'shipped')
+        """)
 
-    raise HTTPException(status_code=501, detail="Not implemented yet — your turn!")
+        row = results[0]
+
+        return {
+            "total_revenue": round(row["total_revenue"] or 0, 2),
+            "total_orders": row["total_orders"],
+            "unique_customers": row["unique_customers"],
+            "date_range": {
+                "start": row["start_date"],
+                "end": row["end_date"],
+            },
+        }
+
+    finally:
+        conn.close()
 
 
 @app.get("/franchise/orders", tags=["Franchise"])
@@ -195,10 +200,68 @@ def get_orders(start: str = "2022-01-01", end: str = "2022-12-31"):
       - Filter order_date between start and end
       - Only include delivered + shipped for revenue
     """
+    # CHANGE: get_connection() now runs BEFORE the try block (it was after the
+    # finally in the draft). If the connection fails, there is nothing to close,
+    # and the finally block below can safely call conn.close().
     conn = get_connection()
 
-    # ── YOUR CODE HERE ────────────────────────────────────────────────────────
-    raise HTTPException(status_code=501, detail="Not implemented yet — your turn!")
+    # CHANGE: added. SQLite uses ? for query parameters and Snowflake uses %s.
+    # DATA_BACKEND (imported from connection.py) tells us which one is active.
+    ph = "%s" if DATA_BACKEND == "snowflake" else "?"
+
+    try:
+        # CHANGE: start and end are passed as parameters in the tuple at the end
+        # of this call instead of being typed into the SQL. This prevents SQL
+        # injection, because the database treats them as values, not as SQL.
+        results = execute_query(conn, f"""
+            SELECT
+                -- CHANGE: year, month, and month_name come from dim_date (alias d).
+                -- Year and month are used to build the "2022-01" label and to sort.
+                d.year AS year,
+                d.month AS month,
+                d.month_name AS month_name,
+                -- CHANGE: added the order count. DISTINCT avoids counting an order twice.
+                COUNT(DISTINCT f.order_id) AS order_count,
+                -- CHANGE: added the revenue total. The draft did not select one.
+                SUM(f.amount) AS revenue
+            -- CHANGE: the draft had FROM after the JOIN text. SQL order is
+            -- SELECT, FROM, JOIN, WHERE, GROUP BY. f is the short name for fact_orders.
+            FROM fact_orders f
+            -- CHANGE: the draft's "JOIN fact_orders AND dim_date ON date_key" was
+            -- not valid SQL. This joins the two tables where date_key matches.
+            JOIN dim_date d ON f.date_key = d.date_key
+            -- CHANGE: the two placeholders are filled by start and end, in order.
+            WHERE f.order_date BETWEEN {ph} AND {ph}
+              -- CHANGE: added the status filter from the instructions, so only
+              -- delivered and shipped orders are counted.
+              AND f.status IN ('delivered', 'shipped')
+            -- CHANGE: one result row per month. Every non-aggregated column in the
+            -- SELECT must appear here.
+            GROUP BY d.year, d.month, d.month_name
+            -- CHANGE: added so months come back in calendar order, January first.
+            ORDER BY d.year, d.month
+        """, (start, end))
+
+        # CHANGE: replaced the draft's start["XXXX-XX"] and row[""] placeholders
+        # with real values, one dictionary per month.
+        return [
+            {
+                # CHANGE: builds labels like "2022-01". The :02d pads the month
+                # with a leading zero, so 1 becomes "01". int() is used because
+                # Snowflake can return the month as a Decimal.
+                "month": f"{row['year']}-{int(row['month']):02d}",
+                "month_name": row["month_name"],
+                # CHANGE: reads the order_count column from the query.
+                "order_count": row["order_count"],
+                # Kept from the draft: rounds to 2 decimals, and "or 0" turns an
+                # empty (None) total into 0.
+                "revenue": round(row["revenue"] or 0, 2),
+            }
+            for row in results
+        ]
+    finally:
+        # Kept from the draft: always close the connection, even after an error.
+        conn.close()
 
 
 @app.get("/franchise/products", tags=["Franchise"])

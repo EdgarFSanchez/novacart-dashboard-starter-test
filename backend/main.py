@@ -299,6 +299,33 @@ def get_cities(start: str = "2022-01-01", end: str = "2022-12-31"):
       - ORDER BY revenue DESC
     """
     conn = get_connection()
+    try:
+        results = execute_query(conn,"""
+        SELECT
+            c.addr_city   AS city,
+            c.addr_state  AS state,
+            COUNT(DISTINCT o.order_id) AS order_count,
+            SUM(o.amount)              AS revenue
+        FROM fact_orders  o
+        JOIN dim_customer c ON c.customer_id = o.customer_id
+        WHERE c.is_current = 1
+        AND o.status IN ('delivered', 'shipped')
+        AND o.order_date BETWEEN ? AND ?
+        GROUP BY c.addr_city, c.addr_state
+        ORDER BY revenue DESC
+        """, (start, end))
+
+        return [
+            {
+                "city": row["city"],
+                "state": row["state"],
+                "order_count": row["order_count"],
+                "revenue": row["revenue"]
+            }
+            for row in results
+        ]
+    finally:
+        conn.close()
 
     # ── YOUR CODE HERE ────────────────────────────────────────────────────────
-    raise HTTPException(status_code=501, detail="Not implemented yet — your turn!")
+    #raise HTTPException(status_code=501, detail="Not implemented yet — your turn!")

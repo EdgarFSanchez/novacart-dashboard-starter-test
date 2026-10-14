@@ -77,22 +77,22 @@ export default function ProductsView() {
               Hint: truncate long product names to 20 chars
             */}
                   <div className="card">
-        <div className="section-title" style={{ marginBottom: 16 }}>Top 10 Products by Revenue</div>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart layout="vertical" data={products}>
-            <XAxis type="number" tickFormatter={formatCurrency} tick={{ fill: 'var(--text-primary)' }} />
-            <YAxis type="category" dataKey="name" width={140}
-                  tickFormatter={name => name.length > 20 ? name.slice(0, 20) + '…' : name}
-                  tick={{ fill: 'var(--text-primary)' }} />
-            <Tooltip
+  <div className="section-title" style={{ marginBottom: 16 }}>Top 10 Products by Revenue</div>
+  <ResponsiveContainer width="100%" height={400}>
+    <BarChart layout="vertical" data={products} barCategoryGap="30%">
+      <XAxis type="number" tickFormatter={formatCurrency} tick={{ fill: 'var(--text-primary)' }} />
+      <YAxis type="category" dataKey="name" width={140}
+             tickFormatter={name => name.length > 20 ? name.slice(0, 20) + '…' : name}
+             tick={{ fill: 'var(--text-primary)' }} />
+      <Tooltip
         formatter={value => formatCurrency(value)}
         contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
         labelStyle={{ color: 'var(--text-primary)' }}
       />
-            <Bar dataKey="revenue" fill="#1565C0" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      <Bar dataKey="revenue" fill="#1565C0" />
+    </BarChart>
+  </ResponsiveContainer>
+</div>
 
             {/*
               STEP 2 — Products table

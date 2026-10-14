@@ -38,7 +38,7 @@ export default function ProductsView() {
       return;
     }
     if (startDate > endDate) {
-      setError('Start date must be before end date.');
+      setError('End date must be on or after the start date.');
       return;
     }
     setLoading(true);

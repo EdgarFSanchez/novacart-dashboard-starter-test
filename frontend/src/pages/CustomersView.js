@@ -31,6 +31,17 @@ export default function CustomersView() {
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
+    if (!startDate || !endDate) {
+      setError('Please select both a start and end date.');
+      setLoading(false);
+      return;
+    }
+    if (endDate < startDate) {
+      setError('End date must be on or after the start date.');
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {

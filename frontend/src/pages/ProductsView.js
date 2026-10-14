@@ -33,6 +33,14 @@ export default function ProductsView() {
   useEffect(() => { loadData(); }, []);
 
   async function loadData() {
+    if (!startDate || !endDate) {
+      setError('Please select both a start and end date.');
+      return;
+    }
+    if (startDate > endDate) {
+      setError('Start date must be before end date.');
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -43,7 +51,7 @@ export default function ProductsView() {
     } finally {
       setLoading(false);
     }
-  }
+}
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-primary)' }}>
@@ -78,20 +86,24 @@ export default function ProductsView() {
             */}
                   <div className="card">
   <div className="section-title" style={{ marginBottom: 16 }}>Top 10 Products by Revenue</div>
-  <ResponsiveContainer width="100%" height={400}>
-    <BarChart layout="vertical" data={products} barCategoryGap="30%">
-      <XAxis type="number" tickFormatter={formatCurrency} tick={{ fill: 'var(--text-primary)' }} />
-      <YAxis type="category" dataKey="name" width={140}
-             tickFormatter={name => name.length > 20 ? name.slice(0, 20) + '…' : name}
-             tick={{ fill: 'var(--text-primary)' }} />
-      <Tooltip
-        formatter={value => formatCurrency(value)}
-        contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
-        labelStyle={{ color: 'var(--text-primary)' }}
-      />
-      <Bar dataKey="revenue" fill="#1565C0" />
-    </BarChart>
-  </ResponsiveContainer>
+  {products.length === 0 ? (
+    <div className="loading" style={{ height: 400 }}>No data for selected date range</div>
+  ) : (
+    <ResponsiveContainer width="100%" height={400}>
+      <BarChart layout="vertical" data={products} barCategoryGap="30%">
+        <XAxis type="number" tickFormatter={formatCurrency} tick={{ fill: 'var(--text-primary)' }} />
+        <YAxis type="category" dataKey="name" width={140}
+               tickFormatter={name => name.length > 20 ? name.slice(0, 20) + '…' : name}
+               tick={{ fill: 'var(--text-primary)' }} />
+        <Tooltip
+          formatter={value => formatCurrency(value)}
+          contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+          labelStyle={{ color: 'var(--text-primary)' }}
+        />
+        <Bar dataKey="revenue" fill="#1565C0" />
+      </BarChart>
+    </ResponsiveContainer>
+  )}
 </div>
 
             {/*
@@ -101,34 +113,34 @@ export default function ProductsView() {
               Format revenue with the formatCurrency helper above.
             */}
                           <div className="card">
-                            <div className="section-title" style={{ marginBottom: 16 }}>Product Details</div>
-                            {<div className="card">
-                <div className="section-title" style={{ marginBottom: 16 }}>Product Details</div>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-                  <thead>
-                    <tr style={{ borderBottom: '2px solid var(--border)' }}>
-                      <th style={{ textAlign: 'left',  padding: '8px 12px' }}>Name</th>
-                      <th style={{ textAlign: 'left',  padding: '8px 12px' }}>Category</th>
-                      <th style={{ textAlign: 'right', padding: '8px 12px' }}>Units Sold</th>
-                      <th style={{ textAlign: 'right', padding: '8px 12px' }}>Revenue</th>
+            <div className="section-title" style={{ marginBottom: 16 }}>Product Details</div>
+            {products.length === 0 ? (
+              <div className="loading" style={{ height: 400 }}>No data for selected date range</div>
+            ) : (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid var(--border)' }}>
+                    <th style={{ textAlign: 'left',  padding: '8px 12px' }}>Name</th>
+                    <th style={{ textAlign: 'left',  padding: '8px 12px' }}>Category</th>
+                    <th style={{ textAlign: 'right', padding: '8px 12px' }}>Units Sold</th>
+                    <th style={{ textAlign: 'right', padding: '8px 12px' }}>Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((p, i) => (
+                    <tr key={p.product_id}
+                        style={{ background: i % 2 === 0 ? 'var(--bg-secondary)' : 'transparent',
+                                borderBottom: '1px solid var(--border)' }}>
+                      <td style={{ padding: '8px 12px' }}>{p.name}</td>
+                      <td style={{ padding: '8px 12px', color: 'var(--text-secondary)' }}>{p.category}</td>
+                      <td style={{ padding: '8px 12px', textAlign: 'right' }}>{p.units_sold.toLocaleString()}</td>
+                      <td style={{ padding: '8px 12px', textAlign: 'right' }}>{formatCurrency(p.revenue)}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {products.map((p, i) => (
-                      <tr key={p.product_id}
-                          style={{ background: i % 2 === 0 ? 'var(--bg-secondary)' : 'transparent',
-                                  borderBottom: '1px solid var(--border)' }}>
-                        <td style={{ padding: '8px 12px' }}>{p.name}</td>
-                        <td style={{ padding: '8px 12px', color: 'var(--text-secondary)' }}>{p.category}</td>
-                        <td style={{ padding: '8px 12px', textAlign: 'right' }}>{p.units_sold.toLocaleString()}</td>
-                        <td style={{ padding: '8px 12px', textAlign: 'right' }}>{formatCurrency(p.revenue)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>}
-              
-            </div>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
 
           </div>
         )}

@@ -76,13 +76,23 @@ export default function ProductsView() {
               XAxis type="number", YAxis type="category" dataKey="name"
               Hint: truncate long product names to 20 chars
             */}
-            <div className="card">
-              <div className="section-title" style={{ marginBottom: 16 }}>Top 10 Products by Revenue</div>
-              {/* TODO: add your bar chart here */}
-              <div className="loading" style={{ height: 300 }}>
-                Implement the products bar chart
-              </div>
-            </div>
+                  <div className="card">
+        <div className="section-title" style={{ marginBottom: 16 }}>Top 10 Products by Revenue</div>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart layout="vertical" data={products}>
+            <XAxis type="number" tickFormatter={formatCurrency} tick={{ fill: 'var(--text-primary)' }} />
+            <YAxis type="category" dataKey="name" width={140}
+                  tickFormatter={name => name.length > 20 ? name.slice(0, 20) + '…' : name}
+                  tick={{ fill: 'var(--text-primary)' }} />
+            <Tooltip
+        formatter={value => formatCurrency(value)}
+        contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
+        labelStyle={{ color: 'var(--text-primary)' }}
+      />
+            <Bar dataKey="revenue" fill="#1565C0" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
 
             {/*
               STEP 2 — Products table
@@ -90,12 +100,34 @@ export default function ProductsView() {
               Hint: use an HTML table or build with divs.
               Format revenue with the formatCurrency helper above.
             */}
-            <div className="card">
-              <div className="section-title" style={{ marginBottom: 16 }}>Product Details</div>
-              {/* TODO: add your table here */}
-              <div className="loading" style={{ height: 300 }}>
-                Implement the products table
-              </div>
+                          <div className="card">
+                            <div className="section-title" style={{ marginBottom: 16 }}>Product Details</div>
+                            {<div className="card">
+                <div className="section-title" style={{ marginBottom: 16 }}>Product Details</div>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid var(--border)' }}>
+                      <th style={{ textAlign: 'left',  padding: '8px 12px' }}>Name</th>
+                      <th style={{ textAlign: 'left',  padding: '8px 12px' }}>Category</th>
+                      <th style={{ textAlign: 'right', padding: '8px 12px' }}>Units Sold</th>
+                      <th style={{ textAlign: 'right', padding: '8px 12px' }}>Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {products.map((p, i) => (
+                      <tr key={p.product_id}
+                          style={{ background: i % 2 === 0 ? 'var(--bg-secondary)' : 'transparent',
+                                  borderBottom: '1px solid var(--border)' }}>
+                        <td style={{ padding: '8px 12px' }}>{p.name}</td>
+                        <td style={{ padding: '8px 12px', color: 'var(--text-muted)' }}>{p.category}</td>
+                        <td style={{ padding: '8px 12px', textAlign: 'right' }}>{p.units_sold.toLocaleString()}</td>
+                        <td style={{ padding: '8px 12px', textAlign: 'right' }}>{formatCurrency(p.revenue)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>}
+              
             </div>
 
           </div>

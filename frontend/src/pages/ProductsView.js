@@ -119,7 +119,7 @@ export default function ProductsView() {
                           style={{ background: i % 2 === 0 ? 'var(--bg-secondary)' : 'transparent',
                                   borderBottom: '1px solid var(--border)' }}>
                         <td style={{ padding: '8px 12px' }}>{p.name}</td>
-                        <td style={{ padding: '8px 12px', color: 'var(--text-muted)' }}>{p.category}</td>
+                        <td style={{ padding: '8px 12px', color: 'var(--text-secondary)' }}>{p.category}</td>
                         <td style={{ padding: '8px 12px', textAlign: 'right' }}>{p.units_sold.toLocaleString()}</td>
                         <td style={{ padding: '8px 12px', textAlign: 'right' }}>{formatCurrency(p.revenue)}</td>
                       </tr>

@@ -111,11 +111,100 @@ export default function CustomersView() {
             */}
 
             {/* TODO: add your sortable table here */}
-            <div className="loading" style={{ height: 400 }}>
-              Implement the sortable customers table.
-              Data available in: sorted (array of customer objects)
-              Sorting state: sortBy="{sortBy}", sortDir="{sortDir}"
-              Use handleSort(column) to handle header clicks.
+            <div style={{ overflowX: 'auto' }}>
+              <table
+                aria-label="Top customers by revenue"
+                style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}
+              >
+                <thead>
+                  <tr>
+                    {[
+                      { key: 'name', label: 'Name' },
+                      { key: 'city', label: 'City' },
+                      { key: 'state', label: 'State' },
+                      { key: 'total_orders', label: 'Orders' },
+                      { key: 'total_spent', label: 'Total Spent' },
+                    ].map(({ key, label }) => (
+                      <th
+                        key={key}
+                        scope="col"
+                        aria-sort={
+                          sortBy === key
+                            ? sortDir === 'asc' ? 'ascending' : 'descending'
+                            : 'none'
+                        }
+                        style={{
+                          padding: '12px 16px',
+                          textAlign:
+                            key === 'total_orders' || key === 'total_spent'
+                              ? 'right'
+                              : 'left',
+                          borderBottom: '2px solid var(--border)',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => handleSort(key)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--text-primary)',
+                            font: 'inherit',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {label}{sortIcon(key)}
+                        </button>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {sorted.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        style={{
+                          padding: 24,
+                          textAlign: 'center',
+                          color: 'var(--text-secondary)',
+                        }}
+                      >
+                        No customers found for this date range.
+                      </td>
+                    </tr>
+                  ) : (
+                    sorted.map((customer, index) => (
+                      <tr
+                        key={customer.customer_id}
+                        style={{
+                          background:
+                            index % 2 === 0
+                              ? 'var(--bg-card)'
+                              : 'var(--bg-primary)',
+                          borderBottom: '1px solid var(--border)',
+                        }}
+                      >
+                        <td style={{ padding: '12px 16px' }}>{customer.name}</td>
+                        <td style={{ padding: '12px 16px' }}>{customer.city}</td>
+                        <td style={{ padding: '12px 16px' }}>{customer.state}</td>
+                        <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                          {customer.total_orders.toLocaleString('en-US')}
+                        </td>
+                        <td style={{
+                          padding: '12px 16px',
+                          textAlign: 'right',
+                          whiteSpace: 'nowrap',
+                        }}>
+                          {formatCurrency(customer.total_spent)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
 
           </div>

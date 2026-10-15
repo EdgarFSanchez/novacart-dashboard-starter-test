@@ -283,8 +283,9 @@ def get_products(start: str = "2022-01-01", end: str = "2022-12-31"):
     """
 
     conn = get_connection()
+    ph = "%s" if DATA_BACKEND == "snowflake" else "?"
     try:
-        results = execute_query(conn, """
+        results = execute_query(conn, f"""
             SELECT
                 p.product_id,
                 p.name,
@@ -294,7 +295,7 @@ def get_products(start: str = "2022-01-01", end: str = "2022-12-31"):
             FROM fact_orders  o
             JOIN dim_product  p ON p.product_id = o.product_id
             WHERE o.status IN ('delivered', 'shipped')
-            AND o.order_date BETWEEN ? AND ?
+            AND o.order_date BETWEEN {ph} AND {ph}
             GROUP BY p.product_id, p.name, p.category
             ORDER BY revenue DESC
             LIMIT 10
@@ -336,11 +337,12 @@ def get_customers(start: str = "2022-01-01", end: str = "2022-12-31"):
       - ORDER BY total_spent DESC, LIMIT 20
     """
     conn = get_connection()
+    ph = "%s" if DATA_BACKEND == "snowflake" else "?"
 
     # ── YOUR CODE HERE ────────────────────────────────────────────────────────
     #raise HTTPException(status_code=501, detail="Not implemented yet — your turn!")
     try:
-        results = execute_query(conn, """
+        results = execute_query(conn, f"""
         SELECT
             c.customer_id as customer_id,
             c.name AS name,
@@ -352,7 +354,7 @@ def get_customers(start: str = "2022-01-01", end: str = "2022-12-31"):
         FROM fact_orders o
         JOIN dim_customer c on o.customer_id = c.customer_id
         WHERE c.is_current = 1
-            AND o.order_date BETWEEN ? AND ?
+            AND o.order_date BETWEEN {ph} AND {ph}
             AND o.status IN ('delivered', 'shipped')
         
         GROUP BY 
@@ -393,8 +395,9 @@ def get_cities(start: str = "2022-01-01", end: str = "2022-12-31"):
       - ORDER BY revenue DESC
     """
     conn = get_connection()
+    ph = "%s" if DATA_BACKEND == "snowflake" else "?"
     try:
-        results = execute_query(conn,"""
+        results = execute_query(conn, f"""
         SELECT
             c.addr_city   AS city,
             c.addr_state  AS state,
@@ -404,7 +407,7 @@ def get_cities(start: str = "2022-01-01", end: str = "2022-12-31"):
         JOIN dim_customer c ON c.customer_id = o.customer_id
         WHERE c.is_current = 1
         AND o.status IN ('delivered', 'shipped')
-        AND o.order_date BETWEEN ? AND ?
+        AND o.order_date BETWEEN {ph} AND {ph}
         GROUP BY c.addr_city, c.addr_state
         ORDER BY revenue DESC
         """, (start, end))

@@ -90,19 +90,40 @@ export default function ProductsView() {
     <div className="loading" style={{ height: 400 }}>No data for selected date range</div>
   ) : (
     <ResponsiveContainer width="100%" height={400}>
-      <BarChart layout="vertical" data={products} barCategoryGap="30%">
-        <XAxis type="number" tickFormatter={formatCurrency} tick={{ fill: 'var(--text-primary)' }} />
-        <YAxis type="category" dataKey="name" width={140}
-               tickFormatter={name => name.length > 20 ? name.slice(0, 20) + '…' : name}
-               tick={{ fill: 'var(--text-primary)' }} />
-        <Tooltip
-          formatter={value => formatCurrency(value)}
-          contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', color: 'var(--text-primary)' }}
-          labelStyle={{ color: 'var(--text-primary)' }}
-        />
-        <Bar dataKey="revenue" fill="#1565C0" />
-      </BarChart>
-    </ResponsiveContainer>
+  <BarChart layout="vertical" data={products} margin={{ top: 10, right: 20, left: 10, bottom: 0 }}>
+    <XAxis 
+      type="number" 
+      stroke="var(--text-secondary)" 
+      fontSize={12} 
+      tickLine={false} 
+      tickFormatter={formatCurrency} 
+    />
+    <YAxis 
+      type="category" 
+      dataKey="name" 
+      width={140}
+      stroke="var(--text-secondary)" 
+      fontSize={12} 
+      tickLine={false} 
+      tickFormatter={name => name.length > 20 ? name.slice(0, 20) + '…' : name} 
+    />
+    <Tooltip
+      formatter={value => [formatCurrency(value), 'Revenue']}
+      contentStyle={{ 
+        backgroundColor: 'var(--bg-card)', 
+        borderColor: 'var(--border)', 
+        borderRadius: 8, 
+        color: 'var(--text-primary)' 
+      }}
+    />
+    <Bar 
+      dataKey="revenue" 
+      fill="var(--blue)" 
+      barSize={22} 
+      radius={[0, 6, 6, 0]} 
+    />
+  </BarChart>
+</ResponsiveContainer>
   )}
 </div>
 
@@ -132,7 +153,7 @@ export default function ProductsView() {
                         style={{ background: i % 2 === 0 ? 'var(--bg-secondary)' : 'transparent',
                                 borderBottom: '1px solid var(--border)' }}>
                       <td style={{ padding: '8px 12px' }}>{p.name}</td>
-                      <td style={{ padding: '8px 12px', color: 'var(--text-secondary)' }}>{p.category}</td>
+                      <td style={{ padding: '8px 12px' }}>{p.category}</td>
                       <td style={{ padding: '8px 12px', textAlign: 'right' }}>{p.units_sold.toLocaleString()}</td>
                       <td style={{ padding: '8px 12px', textAlign: 'right' }}>{formatCurrency(p.revenue)}</td>
                     </tr>

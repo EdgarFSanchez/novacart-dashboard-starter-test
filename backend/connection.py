@@ -64,6 +64,20 @@ def get_snowflake_connection():
             warehouse=os.getenv("SNOWFLAKE_WAREHOUSE"),
         )
 
+    # Local mode — password authentication (simplest, used when the team is
+    # given a username/password instead of a keypair)
+    password = os.getenv("SNOWFLAKE_PASSWORD")
+    if password:
+        return snowflake.connector.connect(
+            account=os.getenv("SNOWFLAKE_ACCOUNT"),
+            user=os.getenv("SNOWFLAKE_USERNAME"),
+            password=password,
+            role=os.getenv("SNOWFLAKE_ROLE"),
+            warehouse=os.getenv("SNOWFLAKE_WAREHOUSE"),
+            database=os.getenv("SNOWFLAKE_DATABASE"),
+            schema=os.getenv("SNOWFLAKE_SCHEMA"),
+        )
+
     # Local mode — keypair authentication
     private_key_path = os.getenv("SNOWFLAKE_PRIVATE_KEY_PATH")
     if not private_key_path:
